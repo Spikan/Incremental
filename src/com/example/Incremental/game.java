@@ -2,9 +2,9 @@ package com.example.Incremental;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.*;
 
@@ -18,15 +18,14 @@ import java.text.DecimalFormatSymbols;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static java.lang.Thread.sleep;
-
 public class game extends Activity implements View.OnClickListener {
     /**
      * Called when the activity is first created.
      */
 
-    public BigDecimal cubes;
-    public BigDecimal clickNumber;
+    public static BigDecimal cubes;
+    public static BigDecimal clickNumber;
+    public static BigDecimal cps;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -36,6 +35,10 @@ public class game extends Activity implements View.OnClickListener {
         final Context context = this;
 
         TextView numCubes = (TextView) findViewById(R.id.numCubes);
+        TextView cpsView = (TextView) findViewById(R.id.cps);
+
+        numCubes.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+        cpsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
 
         ImageView iceCube = (ImageView) findViewById(R.id.button);
         iceCube.setOnClickListener(this);
@@ -49,8 +52,13 @@ public class game extends Activity implements View.OnClickListener {
         {
             clickNumber = BigDecimal.ONE;
         }
+        if(cps == null)
+        {
+            cps = BigDecimal.ZERO;
+        }
 
-        numCubes.setText("" + cubes);
+        numCubes.setText(cubes + " cubes");
+        cpsView.setText(cps + " cubes/sec");
 
         TimerTask task = new TimerTask()
         {
@@ -78,22 +86,43 @@ public class game extends Activity implements View.OnClickListener {
             case R.id.button:
 
                 final TextView numCubes = (TextView) findViewById(R.id.numCubes);
+                TextView cpsView = (TextView) findViewById(R.id.cps);
 
                 cubes = cubes.add(clickNumber);
-                numCubes.setText("" + cubes);
+                numCubes.setText(cubes + " cubes");
+                cpsView.setText(cps + " cubes/sec");
                 break;
+            case R.id.shop:
+            {
+            Intent intent = new Intent(this, shop.class);
+                startActivity(intent);
+            }
         }
     }
 
     public void saveData() {
-        String filename = "cubeData";
+        String cubeName = "cubeData";
+        String clickName = "clickData";
+        String cpsName = "cpsData";
 
         String cubesString = cubes.toString();
+        String clickString = clickNumber.toString();
+        String cpsString = cps.toString();
 
         try {
-            FileOutputStream outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+
+            FileOutputStream outputStream = openFileOutput(cubeName, Context.MODE_PRIVATE);
             outputStream.write(cubesString.getBytes());
             outputStream.close();
+
+            outputStream = openFileOutput(clickName, Context.MODE_PRIVATE);
+            outputStream.write(clickString.getBytes());
+            outputStream.close();
+
+            outputStream = openFileOutput(cpsName, Context.MODE_PRIVATE);
+            outputStream.write(cpsString.getBytes());
+            outputStream.close();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -109,14 +138,17 @@ public class game extends Activity implements View.OnClickListener {
         DecimalFormat decimalFormat = new DecimalFormat(pattern, symbols);
         decimalFormat.setParseBigDecimal(true);
 
-// parse the string
+        TextView numCubes = (TextView) findViewById(R.id.numCubes);
+        TextView cpsView = (TextView) findViewById(R.id.cps);
 
 
 
         try {
-            String filename = "cubeData";
+            String cubeName = "cubeData";
+            String clickName = "clickData";
+            String cpsName = "cpsData";
 
-            FileInputStream inputStream = openFileInput(filename);
+            FileInputStream inputStream = openFileInput(cubeName);
             BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
             StringBuilder total = new StringBuilder();
             String line;
@@ -126,6 +158,30 @@ public class game extends Activity implements View.OnClickListener {
             r.close();
             inputStream.close();
             cubes = (BigDecimal) decimalFormat.parse(total.toString());
+
+            inputStream = openFileInput(clickName);
+            r = new BufferedReader(new InputStreamReader(inputStream));
+            total = new StringBuilder();
+            while ((line = r.readLine())!= null) {
+                total.append(line);
+            }
+            r.close();
+            inputStream.close();
+            clickNumber = (BigDecimal) decimalFormat.parse(total.toString());
+
+            inputStream = openFileInput(cpsName);
+            r = new BufferedReader(new InputStreamReader(inputStream));
+            total = new StringBuilder();
+            while ((line = r.readLine())!= null) {
+                total.append(line);
+            }
+            r.close();
+            inputStream.close();
+            cps = (BigDecimal) decimalFormat.parse(total.toString());
+
+            numCubes.setText(cubes + " cubes");
+            cpsView.setText(cps + " cubes/sec");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
