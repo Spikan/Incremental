@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -17,12 +18,10 @@ import java.text.DecimalFormatSymbols;
  */
 
 
-
-public class shop extends Activity implements View.OnClickListener
-{
-    BigDecimal cubes = game.cubes;
-    BigDecimal clickNumber = game.clickNumber;
-    BigDecimal cps = game.cps;
+public class shop extends Activity implements View.OnClickListener {
+    long cubes = game.cubes;
+    long clickNumber = game.clickNumber;
+    long cps = game.cps;
 
     int numSunglasses;
     int numHats;
@@ -46,6 +45,14 @@ public class shop extends Activity implements View.OnClickListener
 
         setContentView(R.layout.shop);
 
+        TextView sunglassesText = (TextView) findViewById(R.id.sunglassesText);
+        TextView hatsText = (TextView) findViewById(R.id.hatsText);
+        TextView spText = (TextView) findViewById(R.id.spText);
+        TextView gcText = (TextView) findViewById(R.id.gcText);
+
+        TextView shopCPS = (TextView) findViewById(R.id.shopCPS);
+        TextView shopCubes = (TextView) findViewById(R.id.shopCubes);
+
         loadData();
 
         Button sunglasses = (Button) findViewById(R.id.sunglasses);
@@ -53,74 +60,96 @@ public class shop extends Activity implements View.OnClickListener
         Button spyPlanes = (Button) findViewById(R.id.spy_planes);
         Button goldChains = (Button) findViewById(R.id.gold_chains);
 
-        TextView sunglassesText = (TextView) findViewById(R.id.sunglassesText);
-        TextView hatsText = (TextView) findViewById(R.id.hatsText);
-        TextView spText = (TextView) findViewById(R.id.spText);
-        TextView gcText = (TextView) findViewById(R.id.gcText);
+        sunglasses.setOnClickListener(this);
+        hats.setOnClickListener(this);
+        spyPlanes.setOnClickListener(this);
+        goldChains.setOnClickListener(this);
 
 
-        sunPrice = (long) (numSunglasses * 1.5);
-        hatPrice = (long) (numHats * 2.5);
-        spPrice = (long) (numSP * 3.5);
-        gcPrice = (long) (numGC * 4.5);
+        sunPrice = (long) ((numSunglasses * 1.5) + 1);
+        hatPrice = (long) ((numHats * 2.5) + 1);
+        spPrice = (long) ((numSP * 3.5) + 1);
+        gcPrice = (long) ((numGC * 4.5) + 1);
 
         sunCPS = numSunglasses;
         hatCPS = (long) (numHats * 1.5);
         spCPS = numSP * 3;
         gcCPS = numGC * 5;
 
+        sunglassesText.setText("Owned: " + numSunglasses + " Price: " + sunPrice + " Added CPS: " + sunCPS);
+        hatsText.setText("Owned: " + numHats + " Price: " + hatPrice + " Added CPS: " + hatCPS);
+        spText.setText("Owned: " + numSP + " Price: " + spPrice + " Added CPS: " + spCPS);
+        gcText.setText("Owned: " + numGC + " Price: " + gcPrice + " Added CPS: " + gcCPS);
+
+        shopCPS.setText(cps + " cubes/sec");
+        shopCubes.setText(cubes + " cubes");
+
     }
 
     @Override
     public void onClick(View v) {
 
-        switch(v.getId()) {
+        switch (v.getId()) {
             case R.id.sunglasses:
-                if(cubes.longValue()>=sunPrice)
-                {
-                    cubes = cubes.subtract(new BigDecimal(sunPrice));
+                if (cubes>sunPrice) {
+                    cubes = cubes - sunPrice;
                     numSunglasses++;
-                    cps = cps.add(new BigDecimal(sunCPS));
+                    cps = cps + sunCPS;
+                    saveData();
                 }
                 break;
             case R.id.hats:
-                if(cubes.longValue()>=hatPrice)
-                {
-                    cubes = cubes.subtract(new BigDecimal(hatPrice));
+                if (cubes>hatPrice) {
+                    cubes = cubes - hatPrice;
                     numHats++;
-                    cps = cps.add(new BigDecimal(hatCPS));
+                    cps = cps + hatCPS;
+                    saveData();
                 }
                 break;
             case R.id.spy_planes:
-                if(cubes.longValue()>=spPrice)
-                {
-                    cubes = cubes.subtract(new BigDecimal(spPrice));
+                if (cubes>spPrice) {
+                    cubes = cubes - spPrice;
                     numHats++;
-                    cps = cps.add(new BigDecimal(spCPS));
+                    cps = cps + spCPS;
+                    saveData();
                 }
                 break;
             case R.id.gold_chains:
-                if(cubes.longValue()>=gcPrice)
-                {
-                    cubes = cubes.subtract(new BigDecimal(gcPrice));
+                if (cubes>gcPrice) {
+                    cubes = cubes - gcPrice;
                     numHats++;
-                    cps = cps.add(new BigDecimal(gcCPS));
+                    cps = cps + gcCPS;
+                    saveData();
                 }
                 break;
         }
+        TextView sunglassesText = (TextView) findViewById(R.id.sunglassesText);
+        TextView hatsText = (TextView) findViewById(R.id.hatsText);
+        TextView spText = (TextView) findViewById(R.id.spText);
+        TextView gcText = (TextView) findViewById(R.id.gcText);
 
+        TextView shopCPS = (TextView) findViewById(R.id.shopCPS);
+        TextView shopCubes = (TextView) findViewById(R.id.shopCubes);
 
+        sunglassesText.setText("Owned: " + numSunglasses + " Price: " + sunPrice + " Added CPS: " + sunCPS);
+        hatsText.setText("Owned: " + numHats + " Price: " + hatPrice + " Added CPS: " + hatCPS);
+        spText.setText("Owned: " + numSP + " Price: " + spPrice + " Added CPS: " + spCPS);
+        gcText.setText("Owned: " + numGC + " Price: " + gcPrice + " Added CPS: " + gcCPS);
+
+        shopCPS.setText(cps + " cubes/sec");
+        shopCubes.setText(cubes + " cubes");
     }
 
 
     public void saveData() {
         String fileName = "shopData";
-        byte[] shopBytes = new byte[0];
+        byte[] shopBytes = new byte[12];
 
         shopBytes[0] = (byte) numSunglasses;
         shopBytes[1] = (byte) numHats;
         shopBytes[2] = (byte) numSP;
         shopBytes[3] = (byte) numGC;
+        /*
         shopBytes[4] = (byte) sunPrice;
         shopBytes[5] = (byte) hatPrice;
         shopBytes[6] = (byte) spPrice;
@@ -129,7 +158,7 @@ public class shop extends Activity implements View.OnClickListener
         shopBytes[9] = (byte) hatCPS;
         shopBytes[10] = (byte) spCPS;
         shopBytes[11] = (byte) gcCPS;
-
+        */
         try {
 
             FileOutputStream outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
@@ -142,7 +171,7 @@ public class shop extends Activity implements View.OnClickListener
 
     }
 
-    public void loadData(){
+    public void loadData() {
 
         try {
             String fileName = "shopData";
@@ -154,6 +183,7 @@ public class shop extends Activity implements View.OnClickListener
             numHats = (int) shopBytes[1];
             numSP = (int) shopBytes[2];
             numGC = (int) shopBytes[3];
+            /*
             sunPrice = (long) shopBytes[4];
             hatPrice = (long) shopBytes[5];
             spPrice = (long) shopBytes[6];
@@ -162,16 +192,27 @@ public class shop extends Activity implements View.OnClickListener
             hatCPS = (long) shopBytes[9];
             spCPS = (long) shopBytes[10];
             gcCPS = (long) shopBytes[11];
+            */
 
             TextView sunglassesText = (TextView) findViewById(R.id.sunglassesText);
             TextView hatsText = (TextView) findViewById(R.id.hatsText);
             TextView spText = (TextView) findViewById(R.id.spText);
             TextView gcText = (TextView) findViewById(R.id.gcText);
 
+            TextView shopCPS = (TextView) findViewById(R.id.shopCPS);
+            TextView shopCubes = (TextView) findViewById(R.id.shopCubes);
+
             sunglassesText.setText("Owned: " + numSunglasses + " Price: " + sunPrice + " Added CPS: " + sunCPS);
             hatsText.setText("Owned: " + numHats + " Price: " + hatPrice + " Added CPS: " + hatCPS);
             spText.setText("Owned: " + numSP + " Price: " + spPrice + " Added CPS: " + spCPS);
             gcText.setText("Owned: " + numGC + " Price: " + gcPrice + " Added CPS: " + gcCPS);
+
+            game.cubes = cubes;
+            game.cps = cps;
+            game.clickNumber = clickNumber;
+
+            shopCPS.setText(cps + " cubes/sec");
+            shopCubes.setText(cubes + " cubes");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -193,19 +234,19 @@ public class shop extends Activity implements View.OnClickListener
         }
 
         // Create the byte array to hold the data
-        byte[] bytes = new byte[(int)length];
+        byte[] bytes = new byte[(int) length];
 
         // Read in the bytes
         int offset = 0;
         int numRead = 0;
         while (offset < bytes.length
-                && (numRead=is.read(bytes, offset, bytes.length-offset)) >= 0) {
+                && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
             offset += numRead;
         }
 
         // Ensure all the bytes have been read in
         if (offset < bytes.length) {
-            throw new IOException("Could not completely read file "+file.getName());
+            throw new IOException("Could not completely read file " + file.getName());
         }
 
         // Close the input stream and return bytes

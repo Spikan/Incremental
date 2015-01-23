@@ -8,10 +8,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.widget.*;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -23,9 +20,12 @@ public class game extends Activity implements View.OnClickListener {
      * Called when the activity is first created.
      */
 
-    public static BigDecimal cubes;
-    public static BigDecimal clickNumber;
-    public static BigDecimal cps;
+    //public static BigDecimal cubes;
+    //public static BigDecimal clickNumber;
+    //public static BigDecimal cps;
+    public static long cubes;
+    public static long clickNumber;
+    public static long cps;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,33 +43,26 @@ public class game extends Activity implements View.OnClickListener {
         ImageView iceCube = (ImageView) findViewById(R.id.button);
         iceCube.setOnClickListener(this);
 
+        Button shop = (Button) findViewById(R.id.shopButton);
+        Button settings = (Button) findViewById(R.id.settings);
+
+        shop.setOnClickListener(this);
+        settings.setOnClickListener(this);
+
         loadData();
-        if (cubes == null)
-        {
-            cubes = BigDecimal.ZERO;
-        }
-        if(clickNumber == null)
-        {
-            clickNumber = BigDecimal.ONE;
-        }
-        if(cps == null)
-        {
-            cps = BigDecimal.ZERO;
-        }
+        if(clickNumber == 0)
+            clickNumber = 1;
 
         numCubes.setText(cubes + " cubes");
         cpsView.setText(cps + " cubes/sec");
 
-        TimerTask task = new TimerTask()
-        {
-            public void run()
-            {
+        TimerTask task = new TimerTask() {
+            public void run() {
                 runOnUiThread(new Runnable() //run on ui thread
                 {
-                    public void run()
-                    {
+                    public void run() {
                         saveData();
-                        Toast toast = Toast.makeText(context,getString(R.string.game_saved),Toast.LENGTH_SHORT);
+                        Toast toast = Toast.makeText(context, getString(R.string.game_saved), Toast.LENGTH_SHORT);
                         toast.show();
                     }
                 });
@@ -84,43 +77,32 @@ public class game extends Activity implements View.OnClickListener {
 
         switch (v.getId()) {
             case R.id.button:
-
                 final TextView numCubes = (TextView) findViewById(R.id.numCubes);
                 TextView cpsView = (TextView) findViewById(R.id.cps);
 
-                cubes = cubes.add(clickNumber);
+                cubes = cubes + clickNumber;
                 numCubes.setText(cubes + " cubes");
                 cpsView.setText(cps + " cubes/sec");
                 break;
-            case R.id.shop:
-            {
-            Intent intent = new Intent(this, shop.class);
+
+            case R.id.shopButton:
+                Intent intent = new Intent(getBaseContext(), shop.class);
                 startActivity(intent);
-            }
+                break;
         }
     }
 
     public void saveData() {
-        String cubeName = "cubeData";
-        String clickName = "clickData";
-        String cpsName = "cpsData";
+        String fileName = "mainData";
+        byte[] bytes = new byte[12];
 
-        String cubesString = cubes.toString();
-        String clickString = clickNumber.toString();
-        String cpsString = cps.toString();
-
+        bytes[0] = (byte) cubes;
+        bytes[1] = (byte) clickNumber;
+        bytes[2] = (byte) cps;
         try {
 
-            FileOutputStream outputStream = openFileOutput(cubeName, Context.MODE_PRIVATE);
-            outputStream.write(cubesString.getBytes());
-            outputStream.close();
-
-            outputStream = openFileOutput(clickName, Context.MODE_PRIVATE);
-            outputStream.write(clickString.getBytes());
-            outputStream.close();
-
-            outputStream = openFileOutput(cpsName, Context.MODE_PRIVATE);
-            outputStream.write(cpsString.getBytes());
+            FileOutputStream outputStream = openFileOutput(fileName, Context.MODE_PRIVATE);
+            outputStream.write(bytes);
             outputStream.close();
 
         } catch (Exception e) {
@@ -129,55 +111,20 @@ public class game extends Activity implements View.OnClickListener {
 
     }
 
-    public void loadData(){
-
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-        //symbols.setGroupingSeparator(',');
-        symbols.setDecimalSeparator('.');
-        String pattern = "#,##0.0#";
-        DecimalFormat decimalFormat = new DecimalFormat(pattern, symbols);
-        decimalFormat.setParseBigDecimal(true);
-
-        TextView numCubes = (TextView) findViewById(R.id.numCubes);
-        TextView cpsView = (TextView) findViewById(R.id.cps);
-
-
+    public void loadData() {
 
         try {
-            String cubeName = "cubeData";
-            String clickName = "clickData";
-            String cpsName = "cpsData";
+            final TextView numCubes = (TextView) findViewById(R.id.numCubes);
+            TextView cpsView = (TextView) findViewById(R.id.cps);
 
-            FileInputStream inputStream = openFileInput(cubeName);
-            BufferedReader r = new BufferedReader(new InputStreamReader(inputStream));
-            StringBuilder total = new StringBuilder();
-            String line;
-            while ((line = r.readLine())!= null) {
-                total.append(line);
-            }
-            r.close();
-            inputStream.close();
-            cubes = (BigDecimal) decimalFormat.parse(total.toString());
+            String fileName = "mainData";
 
-            inputStream = openFileInput(clickName);
-            r = new BufferedReader(new InputStreamReader(inputStream));
-            total = new StringBuilder();
-            while ((line = r.readLine())!= null) {
-                total.append(line);
-            }
-            r.close();
-            inputStream.close();
-            clickNumber = (BigDecimal) decimalFormat.parse(total.toString());
+            File file = new File(fileName);
+            byte[] shopBytes = getBytesFromFile(file);
 
-            inputStream = openFileInput(cpsName);
-            r = new BufferedReader(new InputStreamReader(inputStream));
-            total = new StringBuilder();
-            while ((line = r.readLine())!= null) {
-                total.append(line);
-            }
-            r.close();
-            inputStream.close();
-            cps = (BigDecimal) decimalFormat.parse(total.toString());
+            cubes = (long) shopBytes[0];
+            clickNumber = (long) shopBytes[1];
+            cps = (long) shopBytes[2];
 
             numCubes.setText(cubes + " cubes");
             cpsView.setText(cps + " cubes/sec");
@@ -185,5 +132,40 @@ public class game extends Activity implements View.OnClickListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static byte[] getBytesFromFile(File file) throws IOException {
+        InputStream is = new FileInputStream(file);
+
+        // Get the size of the file
+        long length = file.length();
+
+        // You cannot create an array using a long type.
+        // It needs to be an int type.
+        // Before converting to an int type, check
+        // to ensure that file is not larger than Integer.MAX_VALUE.
+        if (length > Integer.MAX_VALUE) {
+            // File is too large
+        }
+
+        // Create the byte array to hold the data
+        byte[] bytes = new byte[(int) length];
+
+        // Read in the bytes
+        int offset = 0;
+        int numRead = 0;
+        while (offset < bytes.length
+                && (numRead = is.read(bytes, offset, bytes.length - offset)) >= 0) {
+            offset += numRead;
+        }
+
+        // Ensure all the bytes have been read in
+        if (offset < bytes.length) {
+            throw new IOException("Could not completely read file " + file.getName());
+        }
+
+        // Close the input stream and return bytes
+        is.close();
+        return bytes;
     }
 }
