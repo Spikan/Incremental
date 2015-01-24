@@ -71,10 +71,10 @@ public class shop extends Activity implements View.OnClickListener {
         spPrice = (long) ((numSP * 3.5) + 1);
         gcPrice = (long) ((numGC * 4.5) + 1);
 
-        sunCPS = numSunglasses;
-        hatCPS = (long) (numHats * 1.5);
-        spCPS = numSP * 3;
-        gcCPS = numGC * 5;
+        sunCPS = numSunglasses+1;
+        hatCPS = (long) (1 + numHats * 1.5);
+        spCPS = 1 + numSP * 3;
+        gcCPS = 1 + numGC * 5;
 
         sunglassesText.setText("Owned: " + numSunglasses + " Price: " + sunPrice + " Added CPS: " + sunCPS);
         hatsText.setText("Owned: " + numHats + " Price: " + hatPrice + " Added CPS: " + hatCPS);
